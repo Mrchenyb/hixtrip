@@ -1,7 +1,10 @@
 package com.hixtrip.sample.entry;
 
+import com.hixtrip.sample.app.api.OrderService;
 import com.hixtrip.sample.client.order.dto.CommandOderCreateDTO;
 import com.hixtrip.sample.client.order.dto.CommandPayDTO;
+import com.hixtrip.sample.entry.strategy.PaymentCallbackContext;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -10,8 +13,12 @@ import org.springframework.web.bind.annotation.RestController;
  * todo 这是你要实现的
  */
 @RestController
+@RequiredArgsConstructor
 public class OrderController {
 
+    private final OrderService orderService;
+
+    private final PaymentCallbackContext context;
 
     /**
      * todo 这是你要实现的接口
@@ -21,9 +28,17 @@ public class OrderController {
      */
     @PostMapping(path = "/command/order/create")
     public String order(@RequestBody CommandOderCreateDTO commandOderCreateDTO) {
+        if (commandOderCreateDTO == null ||
+                commandOderCreateDTO.getSkuId() == null ||
+                commandOderCreateDTO.getAmount() == null) {
+            return "params error";
+        }
         //登录信息可以在这里模拟
-        var userId = "";
-        return "";
+        var userId = "123456";
+        commandOderCreateDTO.setUserId(userId);
+        //调用服务层
+        orderService.createOrder(commandOderCreateDTO);
+        return "success";
     }
 
     /**
@@ -35,7 +50,8 @@ public class OrderController {
      */
     @PostMapping(path = "/command/order/pay/callback")
     public String payCallback(@RequestBody CommandPayDTO commandPayDTO) {
-        return "";
+        context.handleCallback(commandPayDTO);
+        return "success";
     }
 
 }
